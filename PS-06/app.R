@@ -1,51 +1,56 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
+library(tidyverse)
 
-# Define UI for application that draws a histogram
+data <- read_delim("WhatsgoodlyData-6.csv")
+
+#data cleaning
+shopping <- data %>% 
+  group_by('Segment Type', 'Segment Description')
+
+
+#UI Coding
 ui <- fluidPage(
-
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
-        )
+  titlePanel("Social Media Influence"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(inputId = "Gender",
+                  label = "Select Gender",
+                  choices = c("Both", "Male", "Female"),
+                  selected = "Both")
+    ),
+    mainPanel(
+      plotOutput( "plot")
+      #tabsetPanel(type = "tabs",
+                  #tabPanel("Plot", plotOutput("plot")),
+                  #tabPanel("Summary", verbatimTextOutput("summary"))
+      #)
     )
+  )
 )
 
-# Define server logic required to draw a histogram
+#Server Coding
 server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white',
-             xlab = 'Waiting time to next eruption (in mins)',
-             main = 'Histogram of waiting times')
-    })
+  #scatter plot
+  filtered_data <- reactive({
+    data %>%
+      group_by(Gender) %>%
+      summarize(count = n())
+  })
+  
+  output$plot <- renderPlot({
+    ggplot(data = filtered_data(), aes(x = Gender, y = count)) +
+      geom_bar(stat = "identity") +
+      labs(title = "Bar plot of gender", x = "Gender", y = "Count")
+  })
+  
+  
+  
+  
+  output$summary <- renderPrint({
+    summary(data)
+  })
 }
 
-# Run the application 
+
+
 shinyApp(ui = ui, server = server)

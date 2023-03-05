@@ -115,18 +115,25 @@ server <- function(input, output) {
         select("Age", "Average Circumference")
     } else {
       orange %>% 
-        group_by(age) %>% 
+        filter(age == input$age) %>% 
         summarise(avg_cir = mean(circumference)) %>% 
-        mutate("Age" = age, "Average Circumference" = avg_cir) %>% 
-        select("Age", "Average Circumference")
+        mutate("Average Circumference" = avg_cir) %>% 
+        select("Average Circumference")
+    
     }
-  })# colnames = c("Age" = "Age (years)", "Average Circumference" = "Average Circumference (inches)"))
+  })
   ## Statement
   output$table_description <- renderText({
     if(input$age == "All Ages") {
       paste("Average circumference for all ages is", round(mean(orange$circumference), 2))
     } else {
-      paste("The table shows the average circumference of the tree!")
+      avg <- orange %>% 
+        filter(age == input$age) %>% 
+        summarise(avg_cir = mean(circumference)) %>% 
+        pull(avg_cir)
+      
+      paste("The average circumference of trees at age", input$age, "is", round(avg, 2), "!")
+    
     }
   })
   

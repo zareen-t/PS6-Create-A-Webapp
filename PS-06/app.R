@@ -6,8 +6,8 @@ orange <- read_delim("orange-trees.csv") %>%
 
 ui <- fluidPage(
   titlePanel("Orange Data"), 
-  mainPanel(
-    tabsetPanel(type = "tabs",
+    mainPanel(
+     tabsetPanel(type = "tabs",
                 ## Introduction
                 tabPanel("Introduction",
                          h1("Oranges Data Set"),
@@ -27,7 +27,7 @@ ui <- fluidPage(
                          sidebarLayout(
                            sidebarPanel(
                              checkboxGroupInput("trees", 
-                                                "which tree would you like to plot: ", 
+                                                "Which tree would you like to plot: ", 
                                                 choices = unique(orange$Tree), 
                                                 selected = unique(orange$Tree)), 
                              sliderInput("range", 
@@ -46,8 +46,9 @@ ui <- fluidPage(
                              plotOutput("plot"),
                              p(),
                              textOutput(("plot_description"))
-                           )
-                         )),
+                            )
+                          )
+                        ),
                 ## Table
                 tabPanel("Table",
                          sidebarLayout(
@@ -59,22 +60,24 @@ ui <- fluidPage(
                            mainPanel(
                              tableOutput("table"),
                              p(),
-                             textOutput("table_statement")
-                           )
-                         )
-                )       
-                
-                
-    )
-  )
-)
+                             textOutput("table_description")
+                            )
+                          )
+                        )       
+              )
+          )
+      )
+
+
 
 server <- function(input, output) {
+  
   # Sample plot
   output$sample <- renderTable(
     orange %>% 
       sample_n(5)
   )
+  
   
   ## Plot
   output$plot <- renderPlot({
@@ -90,15 +93,14 @@ server <- function(input, output) {
     }
     ggplot(orange_filter, aes(x = age, y = circumference)) + 
       geom_point(aes(col=tree_factor), color=color) + 
+      labs(title = "Age vs Circumference", x = "Age (years)", y = "Circumference (inches)") +
       scale_color_manual(values = rep("grey", length(levels(orange$tree_factor))-1)) +
       if(input$labels) geom_text(aes(label = Tree))
   })
-  
   ## Plot Description
   output$plot_description <- renderText({
-    trees_selected <- paste(input$trees, collapse = ", ")
     age_range <- paste(input$range, collapse = " to ")
-    paste("A plot showing", trees_selected, "trees from age", age_range, "years old is displayed above.")
+    paste("The plot shows trees from age", age_range, "years old above.")
   })
   
   
@@ -108,18 +110,21 @@ server <- function(input, output) {
     if(input$age == "All Ages"){
       orange %>% 
         group_by(age) %>% 
-        summarise(avg_circumference = mean(circumference)) 
+        summarise(avg_cir = mean(circumference)) %>% 
+        mutate("Age" = age, "Average Circumference" = avg_cir) %>% 
+        select("Age", "Average Circumference")
     } else {
       orange %>% 
-        filter(age == input$age) %>% 
-        summarise(avg_circumference = mean(circumference))
+        group_by(age) %>% 
+        summarise(avg_cir = mean(circumference)) %>% 
+        mutate("Age" = age, "Average Circumference" = avg_cir) %>% 
+        select("Age", "Average Circumference")
     }
-  })
-  
+  })# colnames = c("Age" = "Age (years)", "Average Circumference" = "Average Circumference (inches)"))
   ## Statement
-  output$table_statement <- renderText({
+  output$table_description <- renderText({
     if(input$age == "All Ages") {
-      paste("Average Circumference for All Ages:", round(mean(orange$circumference), 2))
+      paste("Average circumference for all ages is", round(mean(orange$circumference), 2))
     } else {
       paste("The table shows the average circumference of the tree!")
     }

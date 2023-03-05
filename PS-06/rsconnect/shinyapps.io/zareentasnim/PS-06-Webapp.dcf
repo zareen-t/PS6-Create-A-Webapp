@@ -1,0 +1,13 @@
+name: PS-06-Webapp
+title: PS-06-Webapp
+username:
+account: zareentasnim
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8479548
+bundleId: 6917203
+url: https://zareentasnim.shinyapps.io/PS-06-Webapp/
+when: 1678002075.30351
+lastSyncTime: 1678002075.30354
+asMultiple: FALSE
+asStatic: FALSE
